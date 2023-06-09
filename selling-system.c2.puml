@@ -1,0 +1,76 @@
+@startuml Container
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons2
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+!define GCPPuml https://raw.githubusercontent.com/davidholsgrove/gcp-icons-for-plantuml/master/dist
+
+
+' DEVICONS
+!include DEVICONS/firebase.puml
+
+' FONTAWESOME
+!include FONTAWESOME/mobile.puml
+
+' GCP
+!include GCPPuml/GCPCommon.puml
+' Computing
+!include GCPPuml/Compute/CloudFunctions.puml
+' Databases
+!include GCPPuml/Databases/CloudFirestore.puml
+' Storage
+!include GCPPuml/Storage/CloudStorage.puml
+
+title Selling System - Container Diagram
+
+' General Entities
+Person(seller, "Seller", "Seller wanting to register a sell order")
+System_Boundary(c1, "Selling System") {
+	Container(app, "Mobile Application", "Kotlin", "Provides a mobile interface for the seller to view the catalog of products and register a sell order", $sprite="mobile")
+	Container(firebase, "Firebase SDK", "", "Provides set of tools to integrate with GCP services (auth, database, storage, etc.)", $sprite="firebase")
+
+' GCP Entities
+	Boundary(gcp, "Google Cloud Platform (GCP) Project", "Cloud platform responsible for enabling infrastructure services, development tools, and scalable solutions") {
+		Boundary(gcpRegion, "Region") {
+			Boundary(gcpRegionDatabase, "Database") {
+				Container(gcpDatabaseFirestoreCatalogProducts, "Catalog Products collection", "Firestore, No-SQL", "Stores and caches catalog products", $sprite="CloudFirestore")
+				Container(gcpDatabaseFirestoreSellOrders, "Sell Orders collection", "Firestore, No-SQL", "Stores and caches selling orders", $sprite="CloudFirestore")
+			}
+
+			Boundary(gcpRegionStorage, "Storage") {
+				Container(gcpStorageSellOrdersAssets, "Sell Orders assets bucket", "Cloud Storage", "Stores assets of Catalog Products", $sprite="CloudStorage")
+				Container(gcpStorageCatalogProductsAssets, "Catalog Products assets bucket", "Cloud Storage", "Stores assets of Catalog Products", $sprite="CloudStorage")
+			}
+
+			Boundary(gcpRegionComputing, "Compute") {
+				Container(gcpComputeFunctionSellOrders, "Sell Orders dispatcher", "Cloud Function", $sprite="CloudFunctions")
+				Container(gcpComputeFunctionCatalogProducts, "Catalog Products receiver", "Cloud Function", $sprite="CloudFunctions")
+			}
+		}
+	}
+}
+System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for storing the catalog of products and selling orders")
+
+
+' Relationships
+
+' General Relationships
+Rel(seller, app, "Views catalog products from and registers selling orders to", "HTTPS")
+Rel(app, firebase, "Uses")
+
+
+' Firebase Relationships
+Rel(firebase, gcpDatabaseFirestoreSellOrders, "Fetches Sell orders from", "WS, Memory")
+Rel(firebase, gcpDatabaseFirestoreCatalogProducts, "Fetches Products from", "WS, Memory")
+Rel(firebase, gcpStorageSellOrdersAssets, "Sends assets to", "HTTPS")
+
+' Functions Relationships
+Rel_Up(gcpComputeFunctionCatalogProducts, gcpStorageCatalogProductsAssets, "Sends assets to", "HTTPS")
+Rel_Up(gcpComputeFunctionCatalogProducts, gcpDatabaseFirestoreCatalogProducts, "Sends updates of Products to", "NoSQL, HTTPS")
+Rel_Up(gcpComputeFunctionSellOrders, gcpDatabaseFirestoreSellOrders, "Receives new/updated Sell Orders from", "WS")
+Rel(gcpComputeFunctionSellOrders, sap, "Sends registered Sell Orders to", "HTTPS, Async")
+Rel(gcpComputeFunctionCatalogProducts, sap, "Receives updates of Products from", "HTTPS, Async")
+
+
+@enduml
