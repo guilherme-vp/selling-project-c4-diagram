@@ -38,7 +38,7 @@ LAYOUT_WITH_LEGEND()
 ' General Entities
 Person(seller, "Seller", "Seller wanting to register a sell order")
 System_Boundary(c1, "Selling System") {
-	Container(app, "Mobile Application", "Kotlin", "Provides a mobile interface for sellers to view the catalog of products and register a sell order", $sprite="mobile")
+	Container(app, "Mobile Application", "Kotlin", "Provides a mobile interface for sellers to view the catalog of products, register sell orders and scan barcode and QR codes", $sprite="mobile")
 	Container(firebase, "Firebase SDK", "", "Provides set of tools to integrate with GCP services (auth, database, storage, etc.)", $sprite="firebase")
 
 ' GCP Entities
