@@ -1,4 +1,4 @@
-@startuml Container
+@startuml
 
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
@@ -13,6 +13,7 @@
 ' FONTAWESOME
 !include FONTAWESOME/mobile.puml
 !include FONTAWESOME/link.puml
+!include FONTAWESOME/cog.puml
 
 ' GCP
 !include GCPPuml/GCPCommon.puml
@@ -25,18 +26,29 @@
 ' Networking
 !include GCPPuml/Networking/DedicatedInterconnect.puml
 !include GCPPuml/Networking/CloudRouter.puml
+' Tools
+!include GCPPuml/Security/CloudIAM.puml
+!include GCPPuml/ManagementTools/Monitoring.puml
+!include GCPPuml/ManagementTools/Logging.puml
 
 title Selling System - Container Diagram
 
 ' General Entities
 Person(seller, "Seller", "Seller wanting to register a sell order")
 System_Boundary(c1, "Selling System") {
-	Container(app, "Mobile Application", "Kotlin", "Provides a mobile interface for the seller to view the catalog of products and register a sell order", $sprite="mobile")
+	Container(app, "Mobile Application", "Kotlin", "Provides a mobile interface for sellers to view the catalog of products and register a sell order", $sprite="mobile")
 	Container(firebase, "Firebase SDK", "", "Provides set of tools to integrate with GCP services (auth, database, storage, etc.)", $sprite="firebase")
 
 ' GCP Entities
 	Boundary(gcp, "Google Cloud Platform (GCP) Project", "Cloud platform responsible for enabling infrastructure services, development tools, and scalable solutions") {
 		Boundary(gcpRegion, "Region") {
+			Boundary(gcpRegionTools, "Firebase Tools") {
+				Container(gcpFirebaseAuth, "Authentication", "Firebase", "Allows users to authenticate using their credentials", $sprite="CloudIAM")
+				Container(gcpFirebaseDynamicLinks, "Dynamic Links", "Firebase", "Redirect users to certain parts of the app", $sprite="link,color=#a7c9eb")
+				Container(gcpFirebaseCrashlytics, "Crashlytics", "Firebase", "Tracks errors and exceptions", $sprite="cog,color=#a7c9eb")
+				Container(gcpFirebaseMonitoring, "Performance Monitoring", "Firebase", "Collects performance data", $sprite="Monitoring")
+			}
+
 			Boundary(gcpRegionDatabase, "Database") {
 				ContainerDb(gcpDatabaseFirestoreCatalogProducts, "Catalog Products collection", "Firestore, No-SQL", "Stores and caches catalog products", $sprite="CloudFirestore")
 				ContainerDb(gcpDatabaseFirestoreSellOrders, "Sell Orders collection", "Firestore, No-SQL", "Stores and caches selling orders", $sprite="CloudFirestore")
@@ -65,12 +77,18 @@ System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for s
 
 ' General Relationships
 Rel(seller, app, "Views catalog products from and registers selling orders to", "HTTPS")
-Rel(app, firebase, "Uses APIs from")
+Rel(app, firebase, "Authenticates, redirects, registers and query documents, uploads and retrieves assets, and sends informations using", "HTTPS")
 
 ' Firebase Relationships
-Rel(firebase, gcpDatabaseFirestoreSellOrders, "Fetches Sell orders from", "WS, Memory")
-Rel(firebase, gcpDatabaseFirestoreCatalogProducts, "Fetches Products from", "WS, Memory")
-Rel(firebase, gcpStorageSellOrdersAssets, "Sends assets to", "HTTPS")
+Rel(firebase, gcpDatabaseFirestoreSellOrders, "Fetches and cache Sell orders from", "WS, Memory")
+Rel(firebase, gcpDatabaseFirestoreCatalogProducts, "Fetches and cache Products from", "WS, Memory")
+Rel(firebase, gcpStorageSellOrdersAssets, "Sends assets to, fetches binary files from", "HTTPS")
+Rel(firebase, gcpStorageCatalogProductsAssets, "Fetches binary files from", "HTTPS")
+
+Rel(firebase, gcpFirebaseDynamicLinks, "Receives deep links from", "HTTPS")
+Rel(firebase, gcpFirebaseCrashlytics, "Sends logs, traces and exception events to", "HTTPS")
+Rel(firebase, gcpFirebaseMonitoring, "Sends HTTP network requests, CPU and RAM usage, etc. to", "HTTPS")
+Rel(firebase, gcpFirebaseAuth, "Sends users' credentials to, and receives users' access from", "HTTPS")
 
 ' Functions Relationships
 Rel_Up(gcpComputeFunctionCatalogProducts, gcpStorageCatalogProductsAssets, "Sends assets to", "HTTPS")
