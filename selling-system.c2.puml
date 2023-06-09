@@ -14,6 +14,7 @@
 !include FONTAWESOME/mobile.puml
 !include FONTAWESOME/link.puml
 !include FONTAWESOME/cog.puml
+!include FONTAWESOME/desktop.puml
 
 ' GCP
 !include GCPPuml/GCPCommon.puml
@@ -37,8 +38,12 @@ LAYOUT_WITH_LEGEND()
 
 ' General Entities
 Person(seller, "Seller", "Seller wanting to register a sell order")
+Person(administrator, "Administrator", "Administrator wanting to generate and print a QR Code")
+
 System_Boundary(c1, "Selling System") {
-	Container(app, "Mobile Application", "Kotlin", "Provides a mobile interface for sellers to view the catalog of products, register sell orders and scan barcode and QR codes", $sprite="mobile")
+	Container(mobileApp, "Mobile Application", "Kotlin, Android", "Provides a mobile interface for sellers to view the catalog of products, register sell orders and scan barcode and QR codes", $sprite="mobile")
+	Container(webApp, "Web Application", "React, JS", "Provides a web interface for administrators to generate and print QR Codes", $sprite="desktop")
+	
 	Container(firebase, "Firebase SDK", "", "Provides set of tools to integrate with GCP services (auth, database, storage, etc.)", $sprite="firebase")
 
 ' GCP Entities
@@ -46,7 +51,7 @@ System_Boundary(c1, "Selling System") {
 		Boundary(gcpRegion, "Region") {
 			Boundary(gcpRegionTools, "Firebase Tools") {
 				Container(gcpFirebaseAuth, "Authentication", "Firebase", "Allows users to authenticate using their credentials", $sprite="CloudIAM")
-				Container(gcpFirebaseDynamicLinks, "Dynamic Links", "Firebase", "Redirect users to certain parts of the app", $sprite="link,color=#a7c9eb")
+				Container(gcpFirebaseDynamicLinks, "Dynamic Links", "Firebase", "Redirect users to certain parts of the mobile app", $sprite="link,color=#a7c9eb")
 				Container(gcpFirebaseCrashlytics, "Crashlytics", "Firebase", "Tracks errors and exceptions", $sprite="cog,color=#a7c9eb")
 				Container(gcpFirebaseMonitoring, "Performance Monitoring", "Firebase", "Collects performance data", $sprite="Monitoring")
 			}
@@ -79,8 +84,10 @@ Person_Ext(sapUser, "SAP User", "SAP user responsible for managing the catalog o
 ' Relationships
 
 ' General Relationships
-Rel(seller, app, "Views catalog products from and registers selling orders to", "HTTPS")
-Rel(app, firebase, "Authenticates, redirects, registers and query documents, uploads and retrieves assets, and sends informations using", "HTTPS")
+Rel(seller, mobileApp, "Views catalog products from and registers selling orders to", "HTTPS")
+Rel(mobileApp, firebase, "Authenticates, redirects, registers and query documents, uploads and retrieves assets, and sends informations using", "HTTPS")
+Rel(administrator, webApp, "Views catalog products and generates QR Codes using", "HTTPS")
+Rel(webApp, firebase, "Authenticates and query documents using", "HTTPS")
 Rel_L(sapUser, sap, "Views registered selling orders and catalog products from, and sends updates of sell orders and catalog products to")
 
 ' Firebase Relationships
