@@ -1,13 +1,13 @@
 @startuml Components
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
-Person(seller, "Seller", "A Seller wanting to register a sell order")
+' Entities
+Person(seller, "Seller", "Seller wanting to register a sell order")
+System(selling, "Selling System", "Allows Sellers to view the catalog of products, and registers selling orders")
+System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for storing the catalog of products and selling orders")
 
-System(selling, "Selling System", "Caches all catalog products and persists new selling orders")
-
-System(spa, "Systems, Applications & Products (SAP)", "ERP responsible for storing the catalog of products and selling orders")
-
-Rel(seller, selling, "Views catalog products and registers selling orders using")
-Rel(selling, spa, "Gets catalog products from and sends registered selling orders to")
+' Relationships
+Rel(seller, selling, "Views catalog products from and registers selling orders to")
+Rel(selling, sap, "Fetches catalog products from and sends new selling orders to")
 
 @enduml
