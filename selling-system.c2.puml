@@ -60,7 +60,7 @@ System_Boundary(c1, "Selling System") {
 			}
 
 			Boundary(gcpRegionComputing, "Compute") {
-				Container(gcpComputeFunctionSellOrders, "Sell Orders dispatcher", "Cloud Function", $sprite="CloudFunctions")
+				Container(gcpComputeFunctionSellOrders, "Sell Orders receiver and dispatcher", "Cloud Function", $sprite="CloudFunctions")
 				Container(gcpComputeFunctionCatalogProducts, "Catalog Products receiver", "Cloud Function", $sprite="CloudFunctions")
 			}
 
@@ -71,6 +71,7 @@ System_Boundary(c1, "Selling System") {
 	}
 }
 System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for storing the catalog of products and selling orders")
+Person_Ext(sapUser, "SAP User", "SAP user responsible for managing the catalog of products and updating selling orders")
 
 
 ' Relationships
@@ -78,6 +79,7 @@ System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for s
 ' General Relationships
 Rel(seller, app, "Views catalog products from and registers selling orders to", "HTTPS")
 Rel(app, firebase, "Authenticates, redirects, registers and query documents, uploads and retrieves assets, and sends informations using", "HTTPS")
+Rel_L(sapUser, sap, "Views registered selling orders and catalog products from, and sends updates of sell orders and catalog products to")
 
 ' Firebase Relationships
 Rel(firebase, gcpDatabaseFirestoreSellOrders, "Fetches and cache Sell orders from", "WS, Memory")
@@ -92,9 +94,9 @@ Rel(firebase, gcpFirebaseAuth, "Sends users' credentials to, and receives users'
 
 ' Functions Relationships
 Rel_Up(gcpComputeFunctionCatalogProducts, gcpStorageCatalogProductsAssets, "Sends assets to", "HTTPS")
-Rel_Up(gcpComputeFunctionCatalogProducts, gcpDatabaseFirestoreCatalogProducts, "Sends updates of Products to", "NoSQL, HTTPS")
-Rel_Up(gcpComputeFunctionSellOrders, gcpDatabaseFirestoreSellOrders, "Receives new/updated Sell Orders from", "WS")
-Rel(gcpComputeFunctionSellOrders, gcpRouter, "Sends registered Sell Orders to", "HTTPS")
+Rel_Up(gcpComputeFunctionCatalogProducts, gcpDatabaseFirestoreCatalogProducts, "Sends updates of Products to", "HTTPS")
+Rel_Up(gcpComputeFunctionSellOrders, gcpDatabaseFirestoreSellOrders, "Receives new/updated Sell Orders from, and sends updates of Sell Orders to", "WS, HTTPS")
+Rel(gcpComputeFunctionSellOrders, gcpRouter, "Receives updates of Sell Orders from, and sends registered Sell Orders to", "HTTPS")
 Rel(gcpComputeFunctionCatalogProducts, gcpRouter, "Receives updates of Products from", "HTTPS")
 
 ' Networking Relationships

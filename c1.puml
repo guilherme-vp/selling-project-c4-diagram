@@ -7,9 +7,11 @@ title Integration between Selling System and SAP
 Person(seller, "Seller", "Seller wanting to register a sell order")
 System(selling, "Selling System", "Allows Sellers to view the catalog of products, and registers selling orders")
 System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for storing the catalog of products and selling orders")
+Person_Ext(sapUser, "SAP User", "SAP user responsible for managing the catalog of products")
 
 ' Relationships
 Rel(seller, selling, "Views catalog products from and registers selling orders to")
-Rel(selling, sap, "Fetches catalog products from and sends new selling orders to")
+Rel(selling, sap, "Fetches catalog products and sell orders from, and sends new selling orders to")
+Rel_L(sapUser, sap, "Views registered selling orders and catalog products from, and sends updates of sell orders and catalog products to")
 
 @enduml
