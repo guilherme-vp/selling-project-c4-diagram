@@ -64,10 +64,10 @@ System_Boundary(c1, "Selling System") {
 				Container(gcpComputeFunctionCatalogProducts, "Catalog Products receiver", "Cloud Function", $sprite="CloudFunctions")
 			}
 
-			Container(gcpRouter, "Cloud Router", "Cloud Router", "Provides dynamic routing by using the Border Gateway Protocol", $sprite="CloudRouter")
+			Container(gcpRouter, "Dynamic external IP routes", "Cloud Router", "Provides dynamic routing of on-premise routes", $sprite="CloudRouter")
 		}
 
-		Container(gcpInterconnect, "Dedicated Interconnect", "Cloud Router", "Provides a direct physical connection with on-premises network",$sprite="DedicatedInterconnect")
+		Container(gcpInterconnect, "Dedicated Interconnection", "Cloud Interconnect", "Provides a direct physical connection with on-premises network",$sprite="DedicatedInterconnect")
 	}
 }
 System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for storing the catalog of products and selling orders")
