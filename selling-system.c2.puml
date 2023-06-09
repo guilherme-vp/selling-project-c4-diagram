@@ -33,6 +33,8 @@
 
 title Selling System - Container Diagram
 
+LAYOUT_WITH_LEGEND()
+
 ' General Entities
 Person(seller, "Seller", "Seller wanting to register a sell order")
 System_Boundary(c1, "Selling System") {

@@ -1,7 +1,9 @@
-@startuml Components
+@startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
 
 title Integration between Selling System and SAP
+
+LAYOUT_WITH_LEGEND()
 
 ' Entities
 Person(seller, "Seller", "Seller wanting to register a sell order")
