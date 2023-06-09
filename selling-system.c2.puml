@@ -12,6 +12,7 @@
 
 ' FONTAWESOME
 !include FONTAWESOME/mobile.puml
+!include FONTAWESOME/link.puml
 
 ' GCP
 !include GCPPuml/GCPCommon.puml
@@ -21,6 +22,9 @@
 !include GCPPuml/Databases/CloudFirestore.puml
 ' Storage
 !include GCPPuml/Storage/CloudStorage.puml
+' Networking
+!include GCPPuml/Networking/DedicatedInterconnect.puml
+!include GCPPuml/Networking/CloudRouter.puml
 
 title Selling System - Container Diagram
 
@@ -34,8 +38,8 @@ System_Boundary(c1, "Selling System") {
 	Boundary(gcp, "Google Cloud Platform (GCP) Project", "Cloud platform responsible for enabling infrastructure services, development tools, and scalable solutions") {
 		Boundary(gcpRegion, "Region") {
 			Boundary(gcpRegionDatabase, "Database") {
-				Container(gcpDatabaseFirestoreCatalogProducts, "Catalog Products collection", "Firestore, No-SQL", "Stores and caches catalog products", $sprite="CloudFirestore")
-				Container(gcpDatabaseFirestoreSellOrders, "Sell Orders collection", "Firestore, No-SQL", "Stores and caches selling orders", $sprite="CloudFirestore")
+				ContainerDb(gcpDatabaseFirestoreCatalogProducts, "Catalog Products collection", "Firestore, No-SQL", "Stores and caches catalog products", $sprite="CloudFirestore")
+				ContainerDb(gcpDatabaseFirestoreSellOrders, "Sell Orders collection", "Firestore, No-SQL", "Stores and caches selling orders", $sprite="CloudFirestore")
 			}
 
 			Boundary(gcpRegionStorage, "Storage") {
@@ -47,7 +51,11 @@ System_Boundary(c1, "Selling System") {
 				Container(gcpComputeFunctionSellOrders, "Sell Orders dispatcher", "Cloud Function", $sprite="CloudFunctions")
 				Container(gcpComputeFunctionCatalogProducts, "Catalog Products receiver", "Cloud Function", $sprite="CloudFunctions")
 			}
+
+			Container(gcpRouter, "Cloud Router", "Cloud Router", "Provides dynamic routing by using the Border Gateway Protocol", $sprite="CloudRouter")
 		}
+
+		Container(gcpInterconnect, "Dedicated Interconnect", "Cloud Router", "Provides a direct physical connection with on-premises network",$sprite="DedicatedInterconnect")
 	}
 }
 System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for storing the catalog of products and selling orders")
@@ -57,8 +65,7 @@ System_Ext(sap, "SAP (Systems, Applications & Products)", "ERP responsible for s
 
 ' General Relationships
 Rel(seller, app, "Views catalog products from and registers selling orders to", "HTTPS")
-Rel(app, firebase, "Uses")
-
+Rel(app, firebase, "Uses APIs from")
 
 ' Firebase Relationships
 Rel(firebase, gcpDatabaseFirestoreSellOrders, "Fetches Sell orders from", "WS, Memory")
@@ -69,8 +76,12 @@ Rel(firebase, gcpStorageSellOrdersAssets, "Sends assets to", "HTTPS")
 Rel_Up(gcpComputeFunctionCatalogProducts, gcpStorageCatalogProductsAssets, "Sends assets to", "HTTPS")
 Rel_Up(gcpComputeFunctionCatalogProducts, gcpDatabaseFirestoreCatalogProducts, "Sends updates of Products to", "NoSQL, HTTPS")
 Rel_Up(gcpComputeFunctionSellOrders, gcpDatabaseFirestoreSellOrders, "Receives new/updated Sell Orders from", "WS")
-Rel(gcpComputeFunctionSellOrders, sap, "Sends registered Sell Orders to", "HTTPS, Async")
-Rel(gcpComputeFunctionCatalogProducts, sap, "Receives updates of Products from", "HTTPS, Async")
+Rel(gcpComputeFunctionSellOrders, gcpRouter, "Sends registered Sell Orders to", "HTTPS")
+Rel(gcpComputeFunctionCatalogProducts, gcpRouter, "Receives updates of Products from", "HTTPS")
+
+' Networking Relationships
+Rel(gcpRouter, gcpInterconnect, "Exchanges routes between GCP and peer network", "BGP")
+Rel(gcpInterconnect, sap, "Receives updates of Products from, and sends registered Sell Orders to", "HTTPS")
 
 
 @enduml
